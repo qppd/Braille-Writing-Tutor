@@ -1,12 +1,12 @@
-RPi.GPIO==0.7.1## Requirements for Braille Writing Tutor (Raspberry Pi)
+## Requirements for Braille Writing Tutor (Raspberry Pi)
 
 # GPIO control for Raspberry Pi
 RPi.GPIO==0.7.1
 
-# Text-to-Speech library (optional)
+# Text-to-Speech library
 gtts==2.5.4
 
-# Audio processing (if needed)
+# Audio processing for TTS playback
 pygame==2.6.1
 
 # Development and debugging

@@ -13,6 +13,7 @@ from button_config import (
     on_read_button, 
     on_display_button
 )
+from gtts_config import get_braille_tts, cleanup_tts
 
 
 class BrailleWritingTutor:
@@ -20,6 +21,9 @@ class BrailleWritingTutor:
         """Initialize the Braille Writing Tutor system"""
         self.button_manager = ButtonManager()
         self.running = True
+        
+        # Initialize Text-to-Speech
+        self.tts = get_braille_tts()
         
         # Register button callbacks
         self.setup_button_callbacks()
@@ -51,6 +55,9 @@ class BrailleWritingTutor:
         print("- Display: Show current pattern")
         print("-" * 40)
         
+        # Play welcome message
+        self.tts.welcome()
+        
         # Start button monitoring with threading
         self.button_manager.start_monitoring()
         
@@ -71,8 +78,13 @@ class BrailleWritingTutor:
     def shutdown(self):
         """Clean shutdown of the application"""
         print("Cleaning up GPIO and shutting down...")
+        
+        # Play shutdown message
+        self.tts.shutdown_message()
+        
         self.running = False
         self.button_manager.cleanup()
+        cleanup_tts()  # Clean up TTS resources
         sys.exit(0)
 
 

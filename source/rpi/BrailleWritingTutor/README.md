@@ -22,9 +22,30 @@ pip install -r requirements.txt
 - Connect the other side of each button to GND
 - The code uses internal pull-up resistors, so no external resistors needed
 
+## Text-to-Speech (TTS) Setup
+
+The application now includes Google Text-to-Speech (gTTS) for audio feedback:
+
+### TTS Dependencies
+- **gTTS**: Google Text-to-Speech library
+- **pygame**: Audio playback for TTS
+
+### TTS Features
+- Welcome message on startup
+- Audio feedback for each button press
+- Customizable language and speech speed
+- Automatic cleanup and error handling
+- Non-blocking audio playback
+
+### Testing TTS
+Test the TTS functionality without GPIO hardware:
+```bash
+python test_tts.py
+```
+
 ## Usage
 
-Run the application:
+Run the main application:
 ```bash
 python main.py
 ```

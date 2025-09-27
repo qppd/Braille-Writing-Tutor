@@ -8,6 +8,7 @@ import time
 import threading
 from typing import Dict, Callable
 from pins_config import BUTTON_PINS
+from gtts_config import get_braille_tts
 
 
 class ButtonManager:
@@ -118,6 +119,11 @@ def on_register_button():
     """Handle register button press"""
     thread_id = threading.current_thread().ident
     print(f"[Thread {thread_id}] Register button pressed - Recording Braille pattern")
+    
+    # Get TTS instance and provide audio feedback
+    tts = get_braille_tts()
+    tts.button_registered()
+    
     # Simulate some processing time
     time.sleep(0.1)
     print(f"[Thread {thread_id}] Register operation completed")
@@ -128,6 +134,11 @@ def on_erase_button():
     """Handle erase button press"""
     thread_id = threading.current_thread().ident
     print(f"[Thread {thread_id}] Erase button pressed - Clearing current input")
+    
+    # Get TTS instance and provide audio feedback
+    tts = get_braille_tts()
+    tts.pattern_erased()
+    
     # Simulate some processing time
     time.sleep(0.1)
     print(f"[Thread {thread_id}] Erase operation completed")
@@ -138,6 +149,11 @@ def on_read_button():
     """Handle read button press"""
     thread_id = threading.current_thread().ident
     print(f"[Thread {thread_id}] Read button pressed - Reading stored patterns")
+    
+    # Get TTS instance and provide audio feedback
+    tts = get_braille_tts()
+    tts.reading_pattern("Sample pattern A")  # Replace with actual pattern data
+    
     # Simulate some processing time
     time.sleep(0.1)
     print(f"[Thread {thread_id}] Read operation completed")
@@ -148,6 +164,11 @@ def on_display_button():
     """Handle display button press"""
     thread_id = threading.current_thread().ident
     print(f"[Thread {thread_id}] Display button pressed - Showing current pattern")
+    
+    # Get TTS instance and provide audio feedback
+    tts = get_braille_tts()
+    tts.displaying_pattern()
+    
     # Simulate some processing time
     time.sleep(0.1)
     print(f"[Thread {thread_id}] Display operation completed")
