@@ -1,0 +1,41 @@
+RPi.GPIO==0.7.1## Requirements for Braille Writing Tutor (Raspberry Pi)
+
+# GPIO control for Raspberry Pi
+RPi.GPIO==0.7.1
+
+# Text-to-Speech library (optional)
+pyttsx3==2.90
+
+# Audio processing (if needed)
+pygame==2.5.2
+
+# Additional useful libraries
+numpy==1.24.3
+scipy==1.10.1
+
+# Development and debugging
+pytest==7.4.0
+
+## Installation Instructions:
+# 1. Update system packages:
+#    sudo apt update && sudo apt upgrade -y
+#
+# 2. Install system dependencies:
+#    sudo apt install python3-pip python3-dev python3-rpi.gpio
+#    sudo apt install espeak espeak-data
+#
+# 3. Install Python packages:
+#    pip3 install -r requirements.txt
+#
+# 4. Enable GPIO access (if needed):
+#    sudo usermod -a -G gpio $USER
+#    # Logout and login again
+#
+# 5. Test GPIO access:
+#    python3 -c "import RPi.GPIO as GPIO; print('GPIO imported successfully')"
+
+## Notes:
+# - RPi.GPIO is typically pre-installed on Raspberry Pi OS
+# - For development/testing on non-RPi systems, consider using:
+#   - fake-rpi library for GPIO simulation
+#   - Mock objects for testing
