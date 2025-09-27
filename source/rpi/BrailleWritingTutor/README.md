@@ -36,6 +36,16 @@ python main.py
 - **Read Button**: Reads back stored Braille patterns
 - **Display Button**: Shows/displays the current pattern
 
+## Threading Implementation
+
+The button system uses threading for responsive, non-blocking operation:
+
+- **GPIO Interrupts**: Button presses trigger hardware interrupts
+- **Threaded Callbacks**: Each button press spawns a separate thread
+- **Debouncing**: Hardware-level debouncing prevents false triggers
+- **Thread Safety**: Uses locks to prevent race conditions
+- **Non-blocking**: Main application loop remains responsive
+
 ## File Structure
 
 - `main.py`: Main application entry point

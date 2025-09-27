@@ -51,13 +51,17 @@ class BrailleWritingTutor:
         print("- Display: Show current pattern")
         print("-" * 40)
         
+        # Start button monitoring with threading
+        self.button_manager.start_monitoring()
+        
         try:
             while self.running:
-                # Check for button presses
-                self.button_manager.check_all_buttons()
+                # Main application logic can go here
+                # Buttons are now handled asynchronously via interrupts
                 
-                # Small delay to prevent excessive CPU usage
-                time.sleep(0.05)  # 50ms delay
+                # You can add other tasks here that run periodically
+                # For now, just keep the main thread alive
+                time.sleep(0.1)  # 100ms delay - much less CPU intensive
                 
         except Exception as e:
             print(f"An error occurred: {e}")
