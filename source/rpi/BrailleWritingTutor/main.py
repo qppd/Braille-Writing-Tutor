@@ -9,7 +9,7 @@ import sys
 from button_config import (
     ButtonManager, 
     on_register_button, 
-    on_erase_button, 
+    on_erase_button,
     on_read_button, 
     on_display_button
 )
