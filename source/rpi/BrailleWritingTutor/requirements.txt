@@ -9,6 +9,9 @@ gtts==2.5.4
 # Audio processing for TTS playback
 pygame==2.6.1
 
+# Serial communication with Arduino
+pyserial==3.5
+
 # Development and debugging
 pytest==8.4.2
 
