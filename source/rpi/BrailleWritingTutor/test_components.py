@@ -12,9 +12,8 @@ def test_imports():
     print("Testing imports...")
     
     try:
-        # Mock RPi.GPIO to avoid hardware dependency
-        sys.modules['RPi.GPIO'] = Mock()
-        sys.modules['RPi'] = Mock()
+        # Mock pigpio to avoid hardware dependency
+        sys.modules['pigpio'] = Mock()
         
         # Mock serial to avoid hardware dependency
         sys.modules['serial'] = Mock()

@@ -3,7 +3,7 @@ Enhanced Button Configuration for Braille Writing Tutor
 Integrates with Phase Manager and Arduino Controller
 """
 
-import RPi.GPIO as GPIO
+import pigpio
 import time
 import threading
 from typing import Dict, Callable
@@ -21,7 +21,7 @@ class EnhancedButtonManager:
         self.buttons = BUTTON_PINS
         self.knob_pins = KNOB_PINS
         self.button_callbacks: Dict[str, Callable] = {}
-        self.debounce_delay = 0.2  # 200ms debounce delay
+        self.debounce_delay = 200000  # 200ms debounce delay in microseconds
         self.last_press_time = {}
         self.running = False
         self.button_threads = []
@@ -36,7 +36,8 @@ class EnhancedButtonManager:
         self._phase_manager = None
         self._arduino = None
         
-        # Initialize GPIO
+        # Initialize pigpio
+        self.pi = None
         self._setup_gpio()
         self._register_default_callbacks()
         
@@ -55,48 +56,41 @@ class EnhancedButtonManager:
         return self._arduino
         
     def _setup_gpio(self):
-        """Initialize GPIO settings for buttons and knob"""
+        """Initialize GPIO settings for buttons and knob using pigpio"""
         try:
-            GPIO.setmode(GPIO.BCM)
-            GPIO.setwarnings(False)
+            # Connect to pigpio daemon
+            self.pi = pigpio.pi()
+            if not self.pi.connected:
+                raise RuntimeError("Failed to connect to pigpiod. Make sure pigpiod is running.")
             
-            # Setup each button pin
+            # Setup each button pin with pull-up resistor
             for button_name, pin in self.buttons.items():
-                GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+                self.pi.set_mode(pin, pigpio.INPUT)
+                self.pi.set_pull_up_down(pin, pigpio.PUD_UP)
                 self.last_press_time[button_name] = 0
                 
-            # Setup GPIO interrupt callbacks for each button
+            # Setup callback for each button (falling edge detection)
             for button_name, pin in self.buttons.items():
-                try:
-                    # Remove any existing event detection first
-                    GPIO.remove_event_detect(pin)
-                except:
-                    pass  # Ignore if no detection was set
-                    
-                GPIO.add_event_detect(pin, GPIO.FALLING, 
-                                    callback=lambda channel, name=button_name: self._button_interrupt_handler(name),
-                                    bouncetime=int(self.debounce_delay * 1000))
+                self.pi.callback(pin, pigpio.FALLING_EDGE, 
+                               lambda gpio, level, tick, name=button_name: self._button_interrupt_handler(name))
             
             # Setup knob/rotary encoder pins
-            GPIO.setup(self.knob_pins['CLK'], GPIO.IN, pull_up_down=GPIO.PUD_UP)
-            GPIO.setup(self.knob_pins['DT'], GPIO.IN, pull_up_down=GPIO.PUD_UP)
-            GPIO.setup(self.knob_pins['SW'], GPIO.IN, pull_up_down=GPIO.PUD_UP)
+            self.pi.set_mode(self.knob_pins['CLK'], pigpio.INPUT)
+            self.pi.set_pull_up_down(self.knob_pins['CLK'], pigpio.PUD_UP)
+            
+            self.pi.set_mode(self.knob_pins['DT'], pigpio.INPUT)
+            self.pi.set_pull_up_down(self.knob_pins['DT'], pigpio.PUD_UP)
+            
+            self.pi.set_mode(self.knob_pins['SW'], pigpio.INPUT)
+            self.pi.set_pull_up_down(self.knob_pins['SW'], pigpio.PUD_UP)
             
             # Add knob switch to button tracking
             self.last_press_time['KNOB_SW'] = 0
             
             # Setup knob interrupts
-            try:
-                # Remove any existing event detection first
-                GPIO.remove_event_detect(self.knob_pins['CLK'])
-                GPIO.remove_event_detect(self.knob_pins['SW'])
-            except:
-                pass  # Ignore if no detection was set
-                
-            GPIO.add_event_detect(self.knob_pins['CLK'], GPIO.BOTH, callback=self._handle_knob_rotation)
-            GPIO.add_event_detect(self.knob_pins['SW'], GPIO.FALLING, 
-                                callback=lambda channel: self._button_interrupt_handler('KNOB_SW'),
-                                bouncetime=int(self.debounce_delay * 1000))
+            self.pi.callback(self.knob_pins['CLK'], pigpio.EITHER_EDGE, self._handle_knob_rotation)
+            self.pi.callback(self.knob_pins['SW'], pigpio.FALLING_EDGE,
+                           lambda gpio, level, tick: self._button_interrupt_handler('KNOB_SW'))
                                 
         except Exception as e:
             raise RuntimeError(f"Failed to add edge detection: {e}")
@@ -205,11 +199,11 @@ class EnhancedButtonManager:
         except Exception as e:
             print(f"Error in knob button handler: {e}")
     
-    def _handle_knob_rotation(self, channel):
+    def _handle_knob_rotation(self, gpio, level, tick):
         """Handle rotary encoder rotation for phase selection"""
         with self.knob_lock:
-            clk_state = GPIO.input(self.knob_pins['CLK'])
-            dt_state = GPIO.input(self.knob_pins['DT'])
+            clk_state = self.pi.read(self.knob_pins['CLK'])
+            dt_state = self.pi.read(self.knob_pins['DT'])
             
             if self.last_clk_state is None:
                 self.last_clk_state = clk_state
@@ -280,28 +274,17 @@ class EnhancedButtonManager:
             
         pin = self.buttons[button_name]
         # Button is pressed when GPIO reads LOW (pull-up configuration)
-        return GPIO.input(pin) == GPIO.LOW
+        return self.pi.read(pin) == 0
     
     def cleanup(self):
         """Clean up GPIO resources"""
         try:
             self.stop_monitoring()
             
-            # Remove event detection for all button pins
-            for pin in self.buttons.values():
-                try:
-                    GPIO.remove_event_detect(pin)
-                except:
-                    pass
-            
-            # Remove event detection for knob pins
-            try:
-                GPIO.remove_event_detect(self.knob_pins['CLK'])
-                GPIO.remove_event_detect(self.knob_pins['SW'])
-            except:
-                pass
+            # Stop pigpio connection
+            if self.pi is not None:
+                self.pi.stop()
                 
-            GPIO.cleanup()
             print("GPIO cleanup completed")
         except Exception as e:
             print(f"Error during GPIO cleanup: {e}")
@@ -431,8 +414,10 @@ def on_display_button():
 def cleanup_gpio_system():
     """Clean up GPIO system-wide to ensure fresh start"""
     try:
-        GPIO.setwarnings(False)
-        GPIO.cleanup()
+        # For pigpio, we just ensure any existing connection is stopped
+        pi = pigpio.pi()
+        if pi.connected:
+            pi.stop()
         print("System-wide GPIO cleanup completed")
     except Exception as e:
         print(f"System-wide GPIO cleanup error (this is usually normal): {e}")
