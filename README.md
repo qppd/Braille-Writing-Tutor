@@ -14,6 +14,7 @@
 [Hardware](#-hardware-components) •
 [Installation](#-installation) •
 [Usage](#-usage) •
+[3D Model](#-3d-model--mechanical-design) •
 [Contributing](#-contributing)
 
 </div>
@@ -30,6 +31,8 @@
 - [Installation](#-installation)
 - [Usage](#-usage)
 - [Circuit Diagram](#-circuit-diagram)
+- [3D Model & Mechanical Design](#-3d-model--mechanical-design)
+- [Technical Implementation](#-technical-implementation)
 - [Development](#-development)
 - [Contributing](#-contributing)
 - [License](#-license)
@@ -195,6 +198,8 @@ BRAILLE WRITING TUTOR/
 │   ├── 📄 Wiring.fzz              # Fritzing circuit file
 │   └── 🖼 Wiring_bb.png           # Breadboard wiring diagram
 └── 📁 model/                       # 3D models and mechanical designs
+    ├── 📄 Braille_Writing_Tutor.f3d            # Fusion 360 editable model
+    └── 🖼 Braille_Writing_Tutor_Main_3D_Model.png  # 3D model preview image
 ```
 
 ## 🚀 Installation
@@ -426,6 +431,126 @@ Implementation details:
 ![Wiring Diagram](diagram/Wiring_bb.png)
 
 *Complete wiring schematic showing connections between Arduino, Raspberry Pi, sensors, and actuators. The Fritzing source file is available at `diagram/Wiring.fzz`.*
+
+## 🎨 3D Model & Mechanical Design
+
+The Braille Writing Tutor features a carefully designed mechanical enclosure that houses all electronic components while providing an ergonomic and accessible user interface. The 3D model was created using Autodesk Fusion 360 and is available for viewing, modification, and 3D printing.
+
+### 3D Model Preview
+
+<div align="center">
+
+![Braille Writing Tutor 3D Model](model/Braille_Writing_Tutor_Main_3D_Model.png)
+
+*Main 3D model showing the complete assembly of the Braille Writing Tutor system*
+
+</div>
+
+### Design Features
+
+#### Enclosure Design
+- **Compact Form Factor**: Optimized dimensions for desktop or lap use
+- **Modular Construction**: Separate compartments for:
+  - Raspberry Pi 4 processing unit
+  - Dual Arduino controller boards (Uno + Mega 2560)
+  - Power distribution and voltage regulation
+  - Mechanical Braille display assembly
+  - Writing slate button matrix
+- **Accessibility-First Layout**: Tactile landmarks and intuitive button placement
+- **Ventilation**: Strategic cooling slots for electronics longevity
+- **Cable Management**: Integrated channels for organized wiring
+
+#### User Interface Components
+- **10×10 Tactile Button Matrix**: The writing slate area where learners emboss Braille dots
+- **10-Cell Mechanical Display**: 60 SMA coil actuators arranged in a horizontal reading strip
+- **Control Button Panel**: Four large, labeled buttons (Register, Erase, Read, Display)
+- **Phase Selection Knob**: Rotary switch with tactile detents for 7 positions (OFF + Phases 1-6)
+- **Status LEDs**: Visual feedback for system state and active phase
+- **Audio Output**: Integrated speaker grille for TTS feedback
+
+#### Mechanical Display Assembly
+- **60 Embossing Pins**: Arranged as 10 Braille cells (6 dots each) in reading orientation
+- **SMA Coil Mounts**: Precision brackets for bidirectional dot control
+- **Actuation Mechanism**: Spring-return system for tactile feedback
+- **Dot Spacing**: Standard Braille spacing (2.5mm between dots, 6.0mm between cells)
+- **Reading Surface**: Smooth, consistent height when dots are raised
+
+#### Writing Slate Design
+- **Button Grid**: 10×10 array matching standard Braille writing slate dimensions
+- **Tactile Guidance**: Raised cell boundaries to help locate dot positions
+- **Low-Profile Keys**: Minimal travel distance for quick writing
+- **Stylus Compatibility**: Can accept metal-tipped stylus or finger pressure
+- **Matrix Scanning**: Row/column architecture for efficient button detection
+
+### Model Files
+
+#### Available Files
+| File | Format | Purpose | Size |
+|------|--------|---------|------|
+| `Braille_Writing_Tutor.f3d` | Fusion 360 | Editable 3D model | ~15 MB |
+| `Braille_Writing_Tutor_Main_3D_Model.png` | PNG Image | Preview/Documentation | ~2 MB |
+
+#### Accessing the 3D Model
+
+**View and Edit in Fusion 360:**
+```bash
+# Navigate to model directory
+cd model/
+
+# Open Braille_Writing_Tutor.f3d in Autodesk Fusion 360
+# File > Open > Select the .f3d file
+```
+
+**Export for 3D Printing:**
+1. Open `Braille_Writing_Tutor.f3d` in Fusion 360
+2. Select the component you want to print
+3. Right-click > Export
+4. Choose format: `.stl` or `.obj`
+5. Configure export settings (resolution, units)
+6. Save and slice with your preferred slicer software (Cura, PrusaSlicer, etc.)
+
+### Manufacturing Considerations
+
+#### 3D Printing Recommendations
+- **Material**: PLA or PETG for most parts; ABS for high-stress components
+- **Layer Height**: 0.2mm for general parts, 0.1mm for precise mechanical interfaces
+- **Infill**: 20-30% for structural components, 100% for button caps and actuator mounts
+- **Support Material**: Required for overhangs in display assembly and button matrix
+- **Post-Processing**: Light sanding for smooth surfaces; acetone vapor smoothing for ABS parts
+
+#### Assembly Hardware (Not Included in Model)
+- M3 screws and nuts for general assembly
+- M2.5 screws for Arduino mounting
+- Heat-set threaded inserts for repeated assembly/disassembly
+- Rubber feet for stability
+- Adhesive cable clips for wire management
+
+#### Dimensional Specifications
+- **Overall Dimensions**: ~450mm × 350mm × 150mm (L × W × H)
+- **Writing Slate Area**: ~250 × 140mm active surface
+- **Display Strip**: ~250 × 140mm reading area
+
+### Design Philosophy
+
+The mechanical design prioritizes **accessibility, durability, and ease of assembly**:
+
+1. **Tactile-First Interface**: All critical controls are distinguishable by touch alone
+2. **Modular Components**: Each subsystem can be assembled, tested, and replaced independently
+3. **Open Hardware**: Complete model files encourage customization and improvement
+4. **Maker-Friendly**: Designed for common 3D printers and hand tools
+5. **Scalable Manufacturing**: Can be produced as a one-off prototype or in small batches
+
+### Customization Guide
+
+The Fusion 360 model includes parameters for easy customization:
+
+- **Button Spacing**: Adjust writing slate grid dimensions
+- **Enclosure Size**: Accommodate different Arduino/RPi models
+- **Display Length**: Support 6-cell, 10-cell, or 20-cell configurations
+- **Control Layout**: Reposition buttons and knobs for different user needs
+- **Mounting Points**: Add brackets for additional sensors or accessories
+
+
 
 ## 🔧 Technical Implementation
 
