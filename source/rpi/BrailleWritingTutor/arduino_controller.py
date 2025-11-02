@@ -4,6 +4,7 @@ Handles serial communication with Arduino Uno (Braille Display Controller)
 """
 
 import serial
+import serial.tools.list_ports
 import threading
 import time
 import queue
@@ -13,8 +14,8 @@ from typing import Optional, Callable
 class ArduinoController:
     """Manages communication with Arduino Uno Braille Display Controller"""
     
-    def __init__(self, port: str = '/dev/ttyUSB0', baud_rate: int = 115200):
-        self.port = port
+    def __init__(self, port: str = None, baud_rate: int = 115200):
+        self.port = port or self._auto_detect_port()
         self.baud_rate = baud_rate
         self.serial_connection: Optional[serial.Serial] = None
         self.is_connected = False
@@ -45,6 +46,36 @@ class ArduinoController:
         self.current_phase = 0
         self.display_enabled = False
         self.last_heartbeat = time.time()
+    
+    def _auto_detect_port(self) -> str:
+        """Auto-detect Arduino serial port"""
+        # Try common ports first
+        common_ports = ['/dev/ttyUSB0', '/dev/ttyACM0', '/dev/ttyUSB1', '/dev/ttyACM1']
+        
+        for port in common_ports:
+            try:
+                # Quick test to see if port exists
+                test_serial = serial.Serial(port, timeout=0.1)
+                test_serial.close()
+                print(f"Found Arduino at {port}")
+                return port
+            except (serial.SerialException, FileNotFoundError):
+                continue
+        
+        # If not found, try listing all ports
+        try:
+            ports = serial.tools.list_ports.comports()
+            for port in ports:
+                # Look for Arduino-like devices
+                if 'USB' in port.device or 'ACM' in port.device or 'Arduino' in str(port.description):
+                    print(f"Found potential Arduino at {port.device}")
+                    return port.device
+        except Exception as e:
+            print(f"Port detection error: {e}")
+        
+        # Fallback to default
+        print("Warning: Could not auto-detect Arduino. Using default /dev/ttyUSB0")
+        return '/dev/ttyUSB0'
         
     def connect(self) -> bool:
         """Connect to Arduino"""

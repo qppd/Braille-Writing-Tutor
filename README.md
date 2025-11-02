@@ -601,7 +601,7 @@ git push origin feature/amazing-new-feature
 
 #### Required Python Packages
 ```bash
-RPi.GPIO==0.7.1     # GPIO control for Raspberry Pi
+pigpio==1.78        # GPIO control via pigpiod daemon
 gtts==2.5.4         # Text-to-Speech library
 pygame==2.6.1       # Audio processing for TTS playback
 pyserial==3.5       # Serial communication with Arduino
@@ -621,10 +621,130 @@ pytest==8.4.2       # Development and testing framework
 - Raspberry Pi OS Bullseye or newer
 - Python 3.8+ with pip
 - GPIO access permissions
+- pigpiod daemon for GPIO control
+```
+
+### GPIO Library: pigpio (Migration from RPi.GPIO)
+
+This project now uses **pigpio** instead of RPi.GPIO for improved GPIO control and reliability.
+
+#### Why pigpio?
+
+**Advantages over RPi.GPIO:**
+1. **No sudo required** - Runs as normal user via pigpiod daemon
+2. **Better timing** - Hardware-timed GPIO with microsecond precision
+3. **More reliable interrupts** - Improved debouncing and edge detection
+4. **Remote GPIO** - Can control GPIO over network
+5. **Advanced features** - PWM, waveforms, precise timing
+6. **Active maintenance** - Better support and updates
+
+#### Setting up pigpio
+
+**Automated Setup (Recommended):**
+```bash
+cd source/rpi/BrailleWritingTutor
+chmod +x setup_pigpio.sh
+./setup_pigpio.sh
+```
+
+**Manual Setup:**
+```bash
+# 1. Install pigpio daemon and library
+sudo apt update
+sudo apt install pigpio python3-pigpio
+
+# 2. Enable and start pigpiod service
+sudo systemctl enable pigpiod
+sudo systemctl start pigpiod
+
+# 3. Add user to gpio group
+sudo usermod -a -G gpio $USER
+# Logout and login for changes to take effect
+
+# 4. Install Python package in virtual environment
+source venv/bin/activate
+pip install pigpio
+
+# 5. Test the connection
+python -c "import pigpio; pi = pigpio.pi(); print('Connected!' if pi.connected else 'Failed'); pi.stop()"
+```
+
+#### Running the Application
+
+```bash
+# Navigate to project directory
+cd ~/Braille-Writing-Tutor/source/rpi/BrailleWritingTutor
+
+# Activate virtual environment
+source venv/bin/activate
+
+# Run application (no sudo needed!)
+python main.py
+```
+
+#### Troubleshooting pigpio
+
+**Error: "Failed to connect to pigpiod"**
+
+Solution 1 - Check if pigpiod is running:
+```bash
+sudo systemctl status pigpiod
+# If not running:
+sudo systemctl start pigpiod
+```
+
+Solution 2 - Restart the daemon:
+```bash
+sudo systemctl restart pigpiod
+```
+
+Solution 3 - Manual start:
+```bash
+sudo killall pigpiod  # Kill any existing processes
+sudo pigpiod          # Start daemon manually
+```
+
+**Error: "Permission denied"**
+
+Make sure your user is in the gpio group:
+```bash
+sudo usermod -a -G gpio $USER
+# Logout and login for changes to take effect
+```
+
+#### Quick Reference Commands
+
+```bash
+# Start pigpiod
+sudo systemctl start pigpiod
+
+# Stop pigpiod
+sudo systemctl stop pigpiod
+
+# Restart pigpiod
+sudo systemctl restart pigpiod
+
+# Check status
+sudo systemctl status pigpiod
+
+# Enable on boot
+sudo systemctl enable pigpiod
+
+# Disable on boot
+sudo systemctl disable pigpiod
+
+# Test connection
+python -c "import pigpio; pi = pigpio.pi(); print('Connected!' if pi.connected else 'Failed'); pi.stop()"
 ```
 
 #### Installation Validation
 ```bash
+# Verify pigpiod is running
+sudo systemctl status pigpiod
+
+# Test pigpio connection
+python -c "import pigpio; pi = pigpio.pi(); print('Connected!' if pi.connected else 'Failed'); pi.stop()"
+
 # Run comprehensive system test
 python3 test_system.py
 
@@ -689,8 +809,12 @@ Writing Slate Controller (Arduino Mega):
    sudo apt update && sudo apt upgrade -y
    
    # Install required system packages
-   sudo apt install -y python3-pip python3-dev python3-rpi.gpio \
+   sudo apt install -y python3-pip python3-dev pigpio python3-pigpio \
                        espeak espeak-data alsa-utils git
+   
+   # Enable and start pigpiod daemon
+   sudo systemctl enable pigpiod
+   sudo systemctl start pigpiod
    
    # Add user to gpio group (logout/login required)
    sudo usermod -a -G gpio $USER
@@ -724,11 +848,14 @@ Writing Slate Controller (Arduino Mega):
 
 4. **Hardware Validation**
    ```bash
+   # Test pigpiod daemon
+   sudo systemctl status pigpiod
+   
+   # Test pigpio connection
+   python3 -c "import pigpio; pi = pigpio.pi(); print('✓ pigpio OK' if pi.connected else '✗ Connection failed'); pi.stop()"
+   
    # Test Arduino connections
    ls -la /dev/ttyUSB* /dev/ttyACM*
-   
-   # Test GPIO access
-   python3 -c "import RPi.GPIO as GPIO; GPIO.setmode(GPIO.BCM); print('GPIO OK')"
    
    # Test audio system
    python3 test_tts.py
@@ -770,16 +897,34 @@ SYSTEM_STARTUP_TIME = "< 5s"          # Full initialization
 
 ### Notes & Troubleshooting
 
+#### Audio Issues
 - Audio initialization fails (pygame error):
   - Ensure `alsa-utils` is installed and an output device is selected; run `alsamixer` to unmute and raise volumes.
   - If still failing, the app will continue with console fallbacks; TTS won't be audible.
 
-- Permission errors for GPIO:
-  - Add your user to the `gpio` group (`sudo usermod -a -G gpio $USER`) and re‑login, or run with `sudo` (not recommended long‑term).
+#### GPIO/pigpio Issues
+- **"Failed to connect to pigpiod"**:
+  - pigpiod daemon not running. Start it: `sudo systemctl start pigpiod`
+  - Or manually: `sudo pigpiod`
+  
+- **"Failed to add edge detection"**:
+  - This usually means pigpiod is not running. See solution above.
+  
+- **Permission errors for GPIO**:
+  - Add your user to the `gpio` group: `sudo usermod -a -G gpio $USER`
+  - Logout and login for changes to take effect
+  - Or verify pigpiod is running as it handles permissions
 
+#### Git Pull Conflicts
+- **Error: "untracked working tree files would be overwritten"**:
+  - Remove `__pycache__` directories: `rm -rf source/rpi/BrailleWritingTutor/__pycache__`
+  - Then retry: `git pull origin main`
+
+#### Platform Compatibility
 - Running on non‑Raspberry Pi systems:
   - `test_tts.py` can run on Windows/macOS/Linux for TTS development (no GPIO required).
-  - The main app requires `RPi.GPIO`, which is specific to Raspberry Pi OS.
+  - The main app requires `pigpio`, which is specific to Raspberry Pi OS.
+  - For development without hardware, use mocked GPIO in tests.
 
 ## 🤝 Contributing
 

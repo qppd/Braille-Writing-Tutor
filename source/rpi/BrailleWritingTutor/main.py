@@ -133,16 +133,10 @@ class BrailleWritingTutor:
                 last_status_check = current_time
             
             # Check for Arduino connection
-            if not self.arduino.is_connected():
-                print("Warning: Arduino connection lost")
-                # Attempt reconnection
-                try:
-                    self.arduino.reconnect()
-                    if self.arduino.is_connected():
-                        print("✓ Arduino reconnected")
-                        self.tts.speak("Arduino reconnected")
-                except Exception as e:
-                    print(f"Arduino reconnection failed: {e}")
+            if self.arduino and not self.arduino.is_connected():
+                # Only show warning once every 30 seconds to avoid spam
+                if current_time - last_status_check > 25:  # Show 5s before status check
+                    print("Warning: Arduino not connected (running in test mode)")
             
             # Small delay to prevent excessive CPU usage
             time.sleep(0.1)

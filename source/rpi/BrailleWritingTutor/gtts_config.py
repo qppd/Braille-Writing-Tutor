@@ -140,6 +140,24 @@ class BrailleTTS:
     def __init__(self, tts_manager):
         self.tts = tts_manager
     
+    def speak(self, text, blocking=False):
+        """
+        Speak any text using the TTS manager
+        
+        Args:
+            text (str): Text to speak
+            blocking (bool): If True, wait for speech to complete
+        """
+        self.tts.speak(text, blocking)
+    
+    def stop(self):
+        """Stop current speech"""
+        self.tts.stop()
+    
+    def set_language(self, language):
+        """Set the TTS language"""
+        self.tts.set_language(language)
+    
     def welcome(self):
         """Welcome message"""
         self.tts.speak("Welcome to Braille Writing Tutor. Press any button to begin.")
