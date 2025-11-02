@@ -56,33 +56,50 @@ class EnhancedButtonManager:
         
     def _setup_gpio(self):
         """Initialize GPIO settings for buttons and knob"""
-        GPIO.setmode(GPIO.BCM)
-        GPIO.setwarnings(False)
-        
-        # Setup each button pin
-        for button_name, pin in self.buttons.items():
-            GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-            self.last_press_time[button_name] = 0
+        try:
+            GPIO.setmode(GPIO.BCM)
+            GPIO.setwarnings(False)
             
-        # Setup GPIO interrupt callbacks for each button
-        for button_name, pin in self.buttons.items():
-            GPIO.add_event_detect(pin, GPIO.FALLING, 
-                                callback=lambda channel, name=button_name: self._button_interrupt_handler(name),
+            # Setup each button pin
+            for button_name, pin in self.buttons.items():
+                GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+                self.last_press_time[button_name] = 0
+                
+            # Setup GPIO interrupt callbacks for each button
+            for button_name, pin in self.buttons.items():
+                try:
+                    # Remove any existing event detection first
+                    GPIO.remove_event_detect(pin)
+                except:
+                    pass  # Ignore if no detection was set
+                    
+                GPIO.add_event_detect(pin, GPIO.FALLING, 
+                                    callback=lambda channel, name=button_name: self._button_interrupt_handler(name),
+                                    bouncetime=int(self.debounce_delay * 1000))
+            
+            # Setup knob/rotary encoder pins
+            GPIO.setup(self.knob_pins['CLK'], GPIO.IN, pull_up_down=GPIO.PUD_UP)
+            GPIO.setup(self.knob_pins['DT'], GPIO.IN, pull_up_down=GPIO.PUD_UP)
+            GPIO.setup(self.knob_pins['SW'], GPIO.IN, pull_up_down=GPIO.PUD_UP)
+            
+            # Add knob switch to button tracking
+            self.last_press_time['KNOB_SW'] = 0
+            
+            # Setup knob interrupts
+            try:
+                # Remove any existing event detection first
+                GPIO.remove_event_detect(self.knob_pins['CLK'])
+                GPIO.remove_event_detect(self.knob_pins['SW'])
+            except:
+                pass  # Ignore if no detection was set
+                
+            GPIO.add_event_detect(self.knob_pins['CLK'], GPIO.BOTH, callback=self._handle_knob_rotation)
+            GPIO.add_event_detect(self.knob_pins['SW'], GPIO.FALLING, 
+                                callback=lambda channel: self._button_interrupt_handler('KNOB_SW'),
                                 bouncetime=int(self.debounce_delay * 1000))
-        
-        # Setup knob/rotary encoder pins
-        GPIO.setup(self.knob_pins['CLK'], GPIO.IN, pull_up_down=GPIO.PUD_UP)
-        GPIO.setup(self.knob_pins['DT'], GPIO.IN, pull_up_down=GPIO.PUD_UP)
-        GPIO.setup(self.knob_pins['SW'], GPIO.IN, pull_up_down=GPIO.PUD_UP)
-        
-        # Add knob switch to button tracking
-        self.last_press_time['KNOB_SW'] = 0
-        
-        # Setup knob interrupts
-        GPIO.add_event_detect(self.knob_pins['CLK'], GPIO.BOTH, callback=self._handle_knob_rotation)
-        GPIO.add_event_detect(self.knob_pins['SW'], GPIO.FALLING, 
-                            callback=lambda channel: self._button_interrupt_handler('KNOB_SW'),
-                            bouncetime=int(self.debounce_delay * 1000))
+                                
+        except Exception as e:
+            raise RuntimeError(f"Failed to add edge detection: {e}")
             
     def _button_interrupt_handler(self, button_name: str):
         """GPIO interrupt handler for button presses"""
@@ -269,6 +286,21 @@ class EnhancedButtonManager:
         """Clean up GPIO resources"""
         try:
             self.stop_monitoring()
+            
+            # Remove event detection for all button pins
+            for pin in self.buttons.values():
+                try:
+                    GPIO.remove_event_detect(pin)
+                except:
+                    pass
+            
+            # Remove event detection for knob pins
+            try:
+                GPIO.remove_event_detect(self.knob_pins['CLK'])
+                GPIO.remove_event_detect(self.knob_pins['SW'])
+            except:
+                pass
+                
             GPIO.cleanup()
             print("GPIO cleanup completed")
         except Exception as e:
@@ -394,3 +426,17 @@ def on_display_button():
     time.sleep(0.1)
     print(f"[Thread {thread_id}] Display operation completed")
     # Add your display logic here
+
+
+def cleanup_gpio_system():
+    """Clean up GPIO system-wide to ensure fresh start"""
+    try:
+        GPIO.setwarnings(False)
+        GPIO.cleanup()
+        print("System-wide GPIO cleanup completed")
+    except Exception as e:
+        print(f"System-wide GPIO cleanup error (this is usually normal): {e}")
+
+
+# Ensure clean GPIO state on module import
+cleanup_gpio_system()

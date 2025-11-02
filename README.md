@@ -772,7 +772,6 @@ SYSTEM_STARTUP_TIME = "< 5s"          # Full initialization
 
 - Audio initialization fails (pygame error):
   - Ensure `alsa-utils` is installed and an output device is selected; run `alsamixer` to unmute and raise volumes.
-  - On HDMI, confirm the display supports audio; switch output in `sudo raspi-config` > System Options > Audio.
   - If still failing, the app will continue with console fallbacks; TTS won't be audible.
 
 - Permission errors for GPIO:

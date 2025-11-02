@@ -10,13 +10,16 @@ import threading
 from gtts_config import get_braille_tts, cleanup_tts
 from phase_manager import get_phase_manager, cleanup_phase_manager, TutoringPhases
 from arduino_controller import get_arduino_controller, cleanup_arduino_controller
-from button_config import get_button_manager, cleanup_button_manager
+from button_config import get_button_manager, cleanup_button_manager, cleanup_gpio_system
 
 
 class BrailleWritingTutor:
     def __init__(self):
         """Initialize the Braille Writing Tutor system"""
         print("Initializing Braille Writing Tutor...")
+        
+        # Ensure clean GPIO state before starting
+        cleanup_gpio_system()
         
         # System state
         self.running = True
