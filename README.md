@@ -642,6 +642,45 @@ ERROR:message    - Error conditions and diagnostics
 - **Audio System**: gTTS with pygame for bilingual feedback
 - **GPIO Optimization**: Interrupt-driven input handling
 
+#### SMA Coil Actuator Challenges
+
+During testing, the SMA (Shape Memory Alloy) coils proved problematic for Braille display implementation. While initially attractive for their compactness and force output, several fundamental issues emerged that make them unsuitable for reliable Braille actuation. Below are the key reasons identified:
+
+##### Low Actuation Frequency (Slow Response)
+SMA actuators rely on heating and cooling cycles to change shape, creating thermal inertia that prevents fast switching. For refreshable Braille displays, high refresh rates are essential for quick dot updates, but SMA cooling limitations restrict cycling speed. Literature notes low driving frequencies as a significant drawback for high-resolution tactile displays.
+
+##### High Power Consumption and Inefficiency
+SMA coils require substantial energy for heating, with additional losses from latent heat during phase changes and hysteresis effects. This high power demand complicates the design of practical, low-power Braille devices.
+
+##### Fatigue and Durability Issues
+SMA materials experience functional fatigue over repeated cycles, degrading their shape-memory properties. For Braille displays requiring frequent actuation, this can lead to displacement drift or complete failure. Improper operation may result in failure before 1 million cycles.
+
+##### Control Complexity and Nonlinear Behavior
+SMAs exhibit highly nonlinear responses dependent on temperature, strain, and operational history. Hysteresis makes precise control challenging, requiring complex circuits that are less ideal for dense Braille arrays where reliable, repeatable pin positions are critical.
+
+##### High Working Temperatures and Heat Management
+SMA operation involves heating to elevated temperatures, causing heat accumulation issues in dense pin arrays. While some designs use magnetic latches to hold positions and reduce continuous power needs, heat management still adds significant design complexity.
+
+##### Limited Strain and Force Tradeoffs
+Usable strain in SMA coils is typically limited to a few percent, potentially insufficient for the required Braille dot protrusion and resistance to finger pressure. Designs amplifying motion may sacrifice force or efficiency.
+
+##### Thermal Fatigue and Material Degradation
+Repeated heating/cooling cycles cause microstructural changes and plastic strain, reducing long-term performance. This degradation affects reliability, particularly critical for assistive technologies like Braille readers.
+
+##### Specific Implementation Notes
+In the "Dynamic Braille display using SMA coil actuator and magnetic latch" paper by Haga et al., a magnetic latch holds the Braille pin position after actuation to address power and heat issues. However, this adds mechanical complexity and potential failure points.
+
+**References:**
+- [University of Michigan GEMs Lab](https://gems.eecs.umich.edu/)
+- [Tohoku University Research Output](https://www.tohoku.ac.jp/en/)
+- [SpringerLink - Actuator Design Literature](https://link.springer.com/)
+- [Manuscript Communicator - Braille Device Design](https://www.manuscriptcommunicator.com/)
+- [Wikipedia - Shape Memory Alloys](https://en.wikipedia.org/wiki/Shape_memory_alloy)
+- [Advances in Social Behavior Research](https://www.atlantis-press.com/journals/asbr)
+- [Medium - SMA Control Challenges](https://medium.com/)
+- [eScholarship - Heat Management in SMA](https://escholarship.org/)
+- [AMME Journals - SMA Strain Limitations](https://amme.journals.ekb.eg/)
+
 #### Learning Analytics
 - **Progress Tracking**: Per-phase completion metrics
 - **Error Analysis**: Pattern recognition for common mistakes
