@@ -649,7 +649,8 @@ During testing, the SMA (Shape Memory Alloy) coils proved problematic for Braill
 ##### Low Actuation Frequency (Slow Response)
 SMA actuators rely on heating and cooling cycles to change shape, creating thermal inertia that prevents fast switching. For refreshable Braille displays, high refresh rates are essential for quick dot updates, but SMA cooling limitations restrict cycling speed. Literature notes low driving frequencies as a significant drawback for high-resolution tactile displays.
 
-##### High Power Consumption and Inefficiency
+##### Non-Realtime Operation
+SMA coils are fundamentally not realtime actuators, making them unfit for Braille displays that require realtime actuation. The thermal-based operation introduces significant delays that prevent instantaneous response, which is critical for dynamic Braille content updates and user interaction.
 SMA coils require substantial energy for heating, with additional losses from latent heat during phase changes and hysteresis effects. This high power demand complicates the design of practical, low-power Braille devices.
 
 ##### Fatigue and Durability Issues
