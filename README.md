@@ -33,6 +33,7 @@
 - [Circuit Diagram](#-circuit-diagram)
 - [3D Model & Mechanical Design](#-3d-model--mechanical-design)
 - [Technical Implementation](#-technical-implementation)
+- [System Diagrams](#-system-diagrams)
 - [Development](#-development)
 - [Contributing](#-contributing)
 - [License](#-license)
@@ -730,6 +731,196 @@ In the "Dynamic Braille display using SMA coil actuator and magnetic latch" pape
 - **Automatic Recovery**: Reconnection attempts for failed components
 - **User Feedback**: Clear audio notifications for all error conditions
 - **Diagnostic Logging**: Comprehensive error tracking and reporting
+
+## 📊 System Diagrams
+
+This section provides visual representations of the Braille Writing Tutor system architecture, logic flow, and interactions.
+
+### System Block Diagram
+
+```mermaid
+graph TD
+    A[Raspberry Pi 4<br/>Central Controller] --> B[Arduino Uno<br/>Display Controller]
+    A --> C[Arduino Mega 2560<br/>Writing Slate Controller]
+    B --> D[60 SMA Coils<br/>Braille Display]
+    C --> E[100 Tactile Buttons<br/>10x10 Matrix]
+    A --> F[Speaker<br/>Audio Feedback]
+    A --> G[Rotary Knob<br/>Phase Selection]
+    A --> H[LED Indicators<br/>Status Display]
+    I[Power Supply<br/>5V/12V] --> A
+    I --> B
+    I --> C
+    I --> D
+```
+
+### Overall System Architecture (Hardware + Software)
+
+```mermaid
+graph TD
+    subgraph "Hardware Layer"
+        H1[Raspberry Pi 4]
+        H2[Arduino Uno]
+        H3[Arduino Mega 2560]
+        H4[SMA Coils Array]
+        H5[Button Matrix]
+        H6[Speaker & Audio]
+        H7[Rotary Encoder]
+    end
+    
+    subgraph "Software Layer"
+        S1[main.py<br/>System Orchestrator]
+        S2[button_config.py<br/>GPIO Management]
+        S3[phase_manager.py<br/>Learning Logic]
+        S4[arduino_controller.py<br/>Serial Communication]
+        S5[gtts_config.py<br/>Text-to-Speech]
+        S6[pins_config.py<br/>Pin Mapping]
+    end
+    
+    H1 --> S1
+    S1 --> S2
+    S1 --> S3
+    S1 --> S4
+    S1 --> S5
+    S1 --> S6
+    
+    S4 --> H2
+    S4 --> H3
+    H2 --> H4
+    H3 --> H5
+    S5 --> H6
+    S2 --> H7
+```
+
+### Flowchart for Program Logic
+
+```mermaid
+flowchart TD
+    Start([System Start]) --> Init[Initialize Components<br/>Load Configurations]
+    Init --> CheckConn{Check Arduino<br/>Connections}
+    CheckConn -->|Success| LoadPhase[Load Current Phase<br/>from Rotary Knob]
+    CheckConn -->|Failure| RetryConn[Retry Connection<br/>with Backoff]
+    RetryConn --> CheckConn
+    
+    LoadPhase --> Monitor[Monitor GPIO Inputs<br/>Buttons & Knob]
+    Monitor --> InputDetect{Input Detected?}
+    InputDetect -->|No| Monitor
+    InputDetect -->|Yes| ProcessInput[Process Input<br/>Validate & Interpret]
+    
+    ProcessInput --> UpdateDisplay[Update Braille Display<br/>Send Commands to Arduino]
+    UpdateDisplay --> GenerateFeedback[Generate Audio Feedback<br/>TTS Synthesis]
+    GenerateFeedback --> PlayAudio[Play Audio<br/>Background Playback]
+    PlayAudio --> LogActivity[Log Activity<br/>Progress Tracking]
+    LogActivity --> CheckPhase{Phase Complete?}
+    CheckPhase -->|No| Monitor
+    CheckPhase -->|Yes| AdvancePhase[Advance to Next Phase<br/>Update Knob Position]
+    AdvancePhase --> Monitor
+    
+    Monitor --> Shutdown{Shutdown Signal?}
+    Shutdown -->|Yes| Cleanup[Cleanup Resources<br/>Save State]
+    Shutdown -->|No| Monitor
+    Cleanup --> End([System End])
+```
+
+### UML Diagrams
+
+#### Use Case Diagram
+
+```mermaid
+usecase "Learn Braille Writing" as UC1
+usecase "Practice Braille Patterns" as UC2
+usecase "Receive Audio Feedback" as UC3
+usecase "Navigate Phases" as UC4
+usecase "Get Progress Reports" as UC5
+
+actor "Blind/Low Vision User" as User
+actor "Instructor" as Instructor
+
+User --> UC1
+User --> UC2
+User --> UC3
+User --> UC4
+Instructor --> UC5
+```
+
+#### Sequence Diagram (Button Press to Feedback)
+
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant R as Raspberry Pi
+    participant A as Arduino Mega
+    participant D as Braille Display
+    participant S as Speaker
+
+    U->>R: Press Button on Slate
+    R->>R: Detect GPIO Interrupt
+    R->>R: Process Button Position
+    R->>A: Send Display Command
+    A->>D: Actuate SMA Coils
+    D-->>U: Tactile Braille Feedback
+    R->>R: Generate TTS Audio
+    R->>S: Play Feedback Sound
+    S-->>U: Audio Confirmation
+```
+
+### Data Flow Diagram (DFD)
+
+```mermaid
+flowchart TD
+    subgraph "External Entities"
+        E1[User Input<br/>Button Presses]
+        E2[User Output<br/>Tactile/Audio Feedback]
+    end
+    
+    subgraph "Processes"
+        P1[Phase Manager<br/>Learning Logic]
+        P2[Button Handler<br/>Input Processing]
+        P3[Arduino Controller<br/>Hardware Commands]
+        P4[TTS Engine<br/>Audio Generation]
+    end
+    
+    subgraph "Data Stores"
+        DS1[Phase Configurations<br/>Lesson Data]
+        DS2[Progress Logs<br/>Activity Records]
+        DS3[Pin Mappings<br/>Hardware Config]
+    end
+    
+    E1 --> P2
+    P2 --> P1
+    P1 --> P3
+    P3 --> E2
+    P1 --> P4
+    P4 --> E2
+    
+    P1 --> DS1
+    P1 --> DS2
+    P2 --> DS3
+```
+
+### State Machine Diagram
+
+```mermaid
+stateDiagram-v2
+    [*] --> Idle: System Ready
+    
+    Idle --> ButtonPressed: Button Press Detected
+    ButtonPressed --> Processing: Validate Input
+    Processing --> Feedback: Generate Response
+    Feedback --> Idle: Feedback Complete
+    
+    Idle --> KnobTurned: Rotary Knob Changed
+    KnobTurned --> PhaseChange: Update Phase
+    PhaseChange --> Idle: Phase Updated
+    
+    Idle --> Error: Hardware Failure
+    Error --> Recovery: Attempt Reconnection
+    Recovery --> Idle: Recovery Success
+    Recovery --> Shutdown: Recovery Failed
+    Shutdown --> [*]
+    
+    note right of Feedback : Audio + Tactile Response
+    note right of PhaseChange : Display Update + Audio
+```
 
 ## 🔧 Development
 
