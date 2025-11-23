@@ -199,7 +199,8 @@ BRAILLE WRITING TUTOR/
 │   └── 🖼 Wiring_bb.png           # Breadboard wiring diagram
 └── 📁 model/                       # 3D models and mechanical designs
     ├── 📄 Braille_Writing_Tutor.f3d            # Fusion 360 editable model
-    └── 🖼 Braille_Writing_Tutor_Main_3D_Model.png  # 3D model preview image
+    ├── 🖼 Braille_Writing_Tutor_Main_3D_Model.png  # 3D model preview image
+    └── 🖼 Braille_Writing_Tutor_Main_3D_Model_Rendered.png  # Rendered 3D model image
 ```
 
 ## 🚀 Installation
@@ -444,6 +445,10 @@ The Braille Writing Tutor features a carefully designed mechanical enclosure tha
 
 *Main 3D model showing the complete assembly of the Braille Writing Tutor system*
 
+![Braille Writing Tutor Rendered 3D Model](model/Braille_Writing_Tutor_Main_3D_Model_Rendered.png)
+
+*Rendered view of the Braille Writing Tutor 3D model*
+
 </div>
 
 ### Design Features
@@ -489,6 +494,7 @@ The Braille Writing Tutor features a carefully designed mechanical enclosure tha
 |------|--------|---------|------|
 | `Braille_Writing_Tutor.f3d` | Fusion 360 | Editable 3D model | ~15 MB |
 | `Braille_Writing_Tutor_Main_3D_Model.png` | PNG Image | Preview/Documentation | ~2 MB |
+| `Braille_Writing_Tutor_Main_3D_Model_Rendered.png` | PNG Image | Rendered 3D model | ~2 MB |
 
 #### Accessing the 3D Model
 
